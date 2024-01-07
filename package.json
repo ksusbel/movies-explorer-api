@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "lint": "npx eslint .",
-    "start": "node app.js",
+    "start": "npm run kill && nodemon app.js",
+    "kill": "kill -9 $(lsof -i :3000) &>/dev/null | exit 0",
     "dev": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
