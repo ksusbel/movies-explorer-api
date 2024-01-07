@@ -2,18 +2,16 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const { celebrate, Joi, errors } = require('celebrate');
+const { errors } = require('celebrate');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const { createUser, login } = require('./controllers/users');
-const NotFoundError = require('./errors/NotFoundError');
 const errorHandler = require('./middlewares/error-handler');
-const auth = require('./middlewares/auth');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
+const router = require('./routes');
 
-// Слушаем 3000 порт
-const { PORT = 3000, DATABASE_URL = 'mongodb://127.0.0.1:27017/bitfilmsdb' } = process.env;
+// Слушаем 3001 порт
+const { PORT = 3001, DATABASE_URL = 'mongodb://127.0.0.1:27017/bitfilmsdb' } = process.env;
 
 const app = express();
 
@@ -39,8 +37,8 @@ const limiter = rateLimit({
 
 app.use(cors({
   origin: [
-    'https://localhost:3000',
-    'http://localhost:3000',
+    'https://localhost:3001',
+    'http://localhost:3001',
     'https://ksusbeldiplom.nomoredomainsmonster.ru',
     'http://ksusbeldiplom.nomoredomainsmonster.ru',
     'https://api.ksusbeldiplom.nomoredomainsmonster.ru',
@@ -60,39 +58,7 @@ app.use(requestLogger); // подключаем логгер запросов
 app.use(limiter);
 app.use(helmet());
 
-app.post(
-  '/signup',
-  celebrate({
-    body: Joi.object().keys({
-      name: Joi.string().min(2).max(30).required(),
-      email: Joi.string().email().required(),
-      password: Joi.string().required(),
-    }).unknown(true),
-  }),
-  createUser,
-);
-
-app.post(
-  '/signin',
-  celebrate({
-    body: Joi.object().keys({
-      email: Joi.string().email().required(),
-      password: Joi.string().required(),
-    }).unknown(true),
-  }),
-  login,
-);
-
-// авторизация
-app.use(auth);
-
-// роуты, которым авторизация нужна
-app.use('/users', require('./routes/users'));
-app.use('/movies', require('./routes/movies'));
-
-app.use('/*', (req, res, next) => {
-  next(new NotFoundError('Такой страницы не существует'));
-});
+app.use(router);
 
 app.use(errorLogger); // подключаем логгер ошибок
 app.use(errors());
