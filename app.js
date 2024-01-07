@@ -2,13 +2,17 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const { errors } = require('celebrate');
+const { celebrate, Joi, errors } = require('celebrate');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { createUser, login } = require('./controllers/users');
+const NotFoundError = require('./errors/NotFoundError');
 const errorHandler = require('./middlewares/error-handler');
+const auth = require('./middlewares/auth');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-const router = require('./routes');
+const loginValid = require('./utils/validation/loginValid');
+const createUserValid = require('./utils/validation/createUserValid');
 
 // Слушаем 3001 порт
 const { PORT = 3001, DATABASE_URL = 'mongodb://127.0.0.1:27017/bitfilmsdb' } = process.env;
@@ -58,7 +62,28 @@ app.use(requestLogger); // подключаем логгер запросов
 app.use(limiter);
 app.use(helmet());
 
-app.use(router);
+app.post(
+  '/signup',
+  createUserValid,
+  createUser,
+);
+
+app.post(
+  '/signin',
+  loginValid,
+  login,
+);
+
+// авторизация
+app.use(auth);
+
+// роуты, которым авторизация нужна
+app.use('/users', require('./routes/users'));
+app.use('/movies', require('./routes/movies'));
+
+app.use('/*', (req, res, next) => {
+  next(new NotFoundError('Такой страницы не существует'));
+});
 
 app.use(errorLogger); // подключаем логгер ошибок
 app.use(errors());
