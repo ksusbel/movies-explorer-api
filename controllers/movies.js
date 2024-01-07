@@ -3,13 +3,12 @@ const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
 const DeleteError = require('../errors/DeleteError');
 
-module.exports.getMovies = async (req, res) => {
-  try {
-    const movies = await Movie.find({});
-    return res.send(movies);
-  } catch (error) {
-    return res.status(500).send({ message: 'На сервере произошла ошибка' });
-  }
+module.exports.getMovies = (req, res, next) => {
+  Movie.find({})
+    .then((movies) => res.send(movies))
+    .catch((err) => {
+      next(err);
+    });
 };
 
 module.exports.createMovie = (req, res, next) => {

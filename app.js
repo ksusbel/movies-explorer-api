@@ -37,7 +37,18 @@ const limiter = rateLimit({
   max: 100, // 100 запросов с одного IP
 });
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://localhost:3000',
+    'http://localhost:3000',
+    'https://ksusbeldiplom.nomoredomainsmonster.ru',
+    'http://ksusbeldiplom.nomoredomainsmonster.ru',
+    'https://api.ksusbeldiplom.nomoredomainsmonster.ru',
+    'http://api.ksusbeldiplom.nomoredomainsmonster.ru',
+  ],
+  credentials: true,
+  maxAge: 30,
+}));
 
 app.get('/crash-test', () => {
   setTimeout(() => {
@@ -46,6 +57,8 @@ app.get('/crash-test', () => {
 });
 
 app.use(requestLogger); // подключаем логгер запросов
+app.use(limiter);
+app.use(helmet());
 
 app.post(
   '/signup',
@@ -72,8 +85,6 @@ app.post(
 
 // авторизация
 app.use(auth);
-app.use(limiter);
-app.use(helmet());
 
 // роуты, которым авторизация нужна
 app.use('/users', require('./routes/users'));
