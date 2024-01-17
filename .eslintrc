@@ -1,0 +1,31 @@
+{
+  "env": {
+      "browser": true,
+      "commonjs": true,
+      "es2021": true
+  },
+  "extends": "airbnb-base",
+  "parserOptions": {
+      "ecmaVersion": "latest"
+  },
+  "rules": {
+      "no-underscore-dangle": [
+        "error", 
+        {
+          "allow": ["_id"],
+          "allowAfterThis": true,
+          "allowAfterThisConstructor": true,
+          "allowFunctionParams": true
+        }
+      ],
+      "no-param-reassign": [
+        "error",
+        { "props": false }
+      ],
+      "no-console": "off",
+      "no-unused-vars": "off",
+      "consistent-return": "off",
+      "no-useless-escape": "off",
+      "max-classes-per-file": "off"
+  }
+}
